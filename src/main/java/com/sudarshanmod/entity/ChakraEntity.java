@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
@@ -35,7 +36,7 @@ public class ChakraEntity extends ProjectileEntity {
     private static final double RETURN_SPEED        = 1.4;    // blocks/tick while returning
     private static final double RETURN_THRESHOLD_SQ = 1.5;    // sq-distance to "arrive"
 
-    // ── State ─────────────────────────────────────────────────────────────
+    // ── State ──────────────────────────────────────────────────────────
     private boolean returning    = false;
     private int     flightTicks  = 0;
 
@@ -57,6 +58,14 @@ public class ChakraEntity extends ProjectileEntity {
             thrower.getEyeY() - 0.1,
             thrower.getZ()
         );
+    }
+
+    // ── Data Tracker ───────────────────────────────────────────────────────
+
+    @Override
+    protected void initDataTracker(DataTracker.Builder builder) {
+        super.initDataTracker(builder);
+        // Add any custom data trackers here if needed
     }
 
     // ── Tick logic ────────────────────────────────────────────────────────
