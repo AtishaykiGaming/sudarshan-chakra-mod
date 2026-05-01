@@ -1,0 +1,26 @@
+{
+  "chakra_throw": {
+    "sounds": [
+      {
+        "name": "sudarshanmod:chakra_throw",
+        "stream": false
+      }
+    ]
+  },
+  "chakra_hit": {
+    "sounds": [
+      {
+        "name": "sudarshanmod:chakra_hit",
+        "stream": false
+      }
+    ]
+  },
+  "chakra_return": {
+    "sounds": [
+      {
+        "name": "sudarshanmod:chakra_return",
+        "stream": false
+      }
+    ]
+  }
+}

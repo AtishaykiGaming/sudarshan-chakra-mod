@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " G ",
+    "GBG",
+    " G "
+  ],
+  "key": {
+    "G": { "item": "minecraft:gold_ingot" },
+    "B": { "item": "minecraft:blaze_rod" }
+  },
+  "result": {
+    "item": "sudarshanmod:sudarshan_chakra",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "sudarshanmod",
+  "version": "1.0.0",
+  "name": "Sudarshan Chakra",
+  "description": "Adds the legendary Sudarshan Chakra weapon — a divine spinning disc that returns to its wielder.",
+  "authors": ["YourName"],
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.sudarshanmod.SudarshanMod"],
+    "client": ["com.sudarshanmod.client.SudarshanModClient"]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21"
+  }
+}
