@@ -82,7 +82,7 @@ public class ChakraEntity extends ProjectileEntity {
             return;
         }
 
-        // ── Server side ───────────────────────────────────────────────────
+        // ── Server side ───────────────────────────────────────────────
         spawnServerParticles();
 
         Entity owner = getOwner();
@@ -201,7 +201,7 @@ public class ChakraEntity extends ProjectileEntity {
         this.discard();
     }
 
-    // ── Particles ────────────────────────────────────────────────���────────
+    // ── Particles ──────────────────────────────────────────────────────────
 
     /** Spawns a golden/fire trail visible to the nearby client (client tick). */
     private void spawnTrailParticles() {
@@ -256,6 +256,6 @@ public class ChakraEntity extends ProjectileEntity {
 
     @Override
     public Packet<ClientPlayPacketListener> createSpawnPacket() {
-        return new EntitySpawnS2CPacket(this);
+        return EntitySpawnS2CPacket.create(this);
     }
 }
