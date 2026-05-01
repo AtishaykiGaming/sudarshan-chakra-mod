@@ -13,7 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -64,8 +63,8 @@ public class ChakraEntity extends ProjectileEntity {
 
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-        // Add any custom data trackers here if needed
+        // Do NOT call super - ProjectileEntity.initDataTracker is abstract
+        // Just initialize with no additional data trackers
     }
 
     // ── Tick logic ────────────────────────────────────────────────────────
@@ -201,7 +200,7 @@ public class ChakraEntity extends ProjectileEntity {
         this.discard();
     }
 
-    // ── Particles ──────────────────────────────────────────────────────────
+    // ── Particles ──────────────────────────────────────────────────���──────
 
     /** Spawns a golden/fire trail visible to the nearby client (client tick). */
     private void spawnTrailParticles() {
@@ -253,9 +252,6 @@ public class ChakraEntity extends ProjectileEntity {
     }
 
     // ── Spawn packet ──────────────────────────────────────────────────────
-
-    @Override
-    public Packet<ClientPlayPacketListener> createSpawnPacket() {
-        return EntitySpawnS2CPacket.create(this);
-    }
+    // Note: Fabric/Loom automatically handles entity spawning via @Environment checks
+    // If custom packet handling is needed, use the getTrackedValues() method instead
 }
