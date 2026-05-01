@@ -201,7 +201,7 @@ public class ChakraEntity extends ProjectileEntity {
         this.discard();
     }
 
-    // ── Particles ─────────────────────────────────────────────────────────
+    // ── Particles ────────────────────────────────────────────────���────────
 
     /** Spawns a golden/fire trail visible to the nearby client (client tick). */
     private void spawnTrailParticles() {
