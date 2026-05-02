@@ -20,35 +20,41 @@ public class SudarshanMod implements ModInitializer {
     public static final String MOD_ID = "sudarshanmod";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    // ── Item ──────────────────────────────────────────────────────────────
-    public static final Item SUDARSHAN_CHAKRA = new SudarshanChakraItem(
-            new Item.Settings().maxCount(1).fireproof()
-    );
+    // Declared here, assigned inside onInitialize() so registry is ready
+    public static Item SUDARSHAN_CHAKRA;
+    public static EntityType<ChakraEntity> CHAKRA_ENTITY;
+    public static SoundEvent CHAKRA_THROW;
+    public static SoundEvent CHAKRA_HIT;
+    public static SoundEvent CHAKRA_RETURN;
 
-    // ── Entity type ───────────────────────────────────────────────────────
-    public static final EntityType<ChakraEntity> CHAKRA_ENTITY = Registry.register(
-            Registries.ENTITY_TYPE,
-            Identifier.of(MOD_ID, "chakra_entity"),
-            FabricEntityTypeBuilder.<ChakraEntity>create(SpawnGroup.MISC, ChakraEntity::new)
-                    .dimensions(EntityDimensions.fixed(0.5f, 0.1f))
-                    .build()
-    );
+    @Override
+    public void onInitialize() {
+        // ── Sounds (register first — entity + item may reference them) ────
+        CHAKRA_THROW  = registerSound("chakra_throw");
+        CHAKRA_HIT    = registerSound("chakra_hit");
+        CHAKRA_RETURN = registerSound("chakra_return");
 
-    // ── Sounds ────────────────────────────────────────────────────────────
-    public static final SoundEvent CHAKRA_THROW = registerSound("chakra_throw");
-    public static final SoundEvent CHAKRA_HIT   = registerSound("chakra_hit");
-    public static final SoundEvent CHAKRA_RETURN = registerSound("chakra_return");
+        // ── Entity type ───────────────────────────────────────────────────
+        CHAKRA_ENTITY = Registry.register(
+                Registries.ENTITY_TYPE,
+                Identifier.of(MOD_ID, "chakra_entity"),
+                FabricEntityTypeBuilder.<ChakraEntity>create(SpawnGroup.MISC, ChakraEntity::new)
+                        .dimensions(EntityDimensions.fixed(0.5f, 0.1f))
+                        .build()
+        );
+
+        // ── Item ──────────────────────────────────────────────────────────
+        SUDARSHAN_CHAKRA = Registry.register(
+                Registries.ITEM,
+                Identifier.of(MOD_ID, "sudarshan_chakra"),
+                new SudarshanChakraItem(new Item.Settings().maxCount(1).fireproof())
+        );
+
+        LOGGER.info("Sudarshan Chakra mod initialised — Jai Shri Vishnu!");
+    }
 
     private static SoundEvent registerSound(String name) {
         Identifier id = Identifier.of(MOD_ID, name);
         return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
-    }
-
-    @Override
-    public void onInitialize() {
-        // Register item
-        Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "sudarshan_chakra"), SUDARSHAN_CHAKRA);
-
-        LOGGER.info("Sudarshan Chakra mod initialised — Jai Shri Vishnu!");
     }
 }
