@@ -10,7 +10,6 @@ import net.minecraft.entity.SpawnGroup;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +21,9 @@ public class SudarshanMod implements ModInitializer {
 
     public static Item SUDARSHAN_CHAKRA;
     public static EntityType<ChakraEntity> CHAKRA_ENTITY;
-    public static SoundEvent CHAKRA_THROW;
-    public static SoundEvent CHAKRA_HIT;
-    public static SoundEvent CHAKRA_RETURN;
 
     @Override
     public void onInitialize() {
-        CHAKRA_THROW  = registerSound("chakra_throw");
-        CHAKRA_HIT    = registerSound("chakra_hit");
-        CHAKRA_RETURN = registerSound("chakra_return");
-
         CHAKRA_ENTITY = Registry.register(
                 Registries.ENTITY_TYPE,
                 Identifier.of(MOD_ID, "chakra_entity"),
@@ -47,10 +39,5 @@ public class SudarshanMod implements ModInitializer {
         );
 
         LOGGER.info("Sudarshan Chakra mod initialised — Jai Shri Vishnu!");
-    }
-
-    private static SoundEvent registerSound(String name) {
-        Identifier id = Identifier.of(MOD_ID, name);
-        return Registry.register(Registries.SOUND_EVENT, id, SoundEvent.of(id));
     }
 }
