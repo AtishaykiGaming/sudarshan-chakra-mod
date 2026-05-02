@@ -11,9 +11,6 @@ import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.hit.EntityHitResult;
@@ -50,10 +47,10 @@ public class ChakraEntity extends ProjectileEntity {
         this.setPosition(thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ());
     }
 
-    // Fix 1: required by 1.21.1 — just call super, no custom tracked data needed
+    // Required by 1.21.1 — no custom tracked data, so body is empty
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
+        // no custom tracked data needed
     }
 
     @Override
@@ -70,106 +67,82 @@ public class ChakraEntity extends ProjectileEntity {
         spawnTrailParticlesServer();
 
         Entity owner = getOwner();
+        if (!returning && flightTicks >= MAX_FLIGHT_TICKS) returning = true;
 
-        if (!returning && flightTicks >= MAX_FLIGHT_TICKS) {
-            returning = true;
-        }
-
-        if (returning) {
-            handleReturn(owner);
-        } else {
-            handleFlight();
-        }
+        if (returning) handleReturn(owner);
+        else handleFlight();
     }
 
     private void handleFlight() {
         Vec3d vel = getVelocity();
         setVelocity(vel.x, vel.y - 0.03, vel.z);
 
-        HitResult hitResult = ProjectileUtil.getCollision(this, this::canHit);
-        if (hitResult.getType() == HitResult.Type.BLOCK) {
-            returning = true;
-            return;
-        }
+        HitResult hit = ProjectileUtil.getCollision(this, this::canHit);
+        if (hit.getType() == HitResult.Type.BLOCK) { returning = true; return; }
 
         Box searchBox = getBoundingBox().stretch(getVelocity()).expand(1.0);
-        List<Entity> candidates = getWorld().getOtherEntities(this, searchBox,
-                e -> e instanceof LivingEntity && e != getOwner());
-
-        for (Entity candidate : candidates) {
-            if (candidate instanceof LivingEntity target) {
-                onEntityHit(target);
-            }
+        for (Entity e : getWorld().getOtherEntities(this, searchBox,
+                en -> en instanceof LivingEntity && en != getOwner())) {
+            onEntityHit((LivingEntity) e);
         }
 
-        Vec3d velocity = getVelocity();
-        setPosition(getX() + velocity.x, getY() + velocity.y, getZ() + velocity.z);
+        Vec3d v = getVelocity();
+        setPosition(getX() + v.x, getY() + v.y, getZ() + v.z);
         velocityDirty = true;
     }
 
     private void handleReturn(Entity owner) {
-        if (owner == null) { this.discard(); return; }
+        if (owner == null) { discard(); return; }
 
         Vec3d toOwner = owner.getEyePos().subtract(getPos());
+        if (toOwner.lengthSquared() <= RETURN_THRESHOLD_SQ) { onReturnToOwner(owner); return; }
 
-        if (toOwner.lengthSquared() <= RETURN_THRESHOLD_SQ) {
-            onReturnToOwner(owner);
-            return;
-        }
+        Vec3d rv = toOwner.normalize().multiply(RETURN_SPEED);
+        setVelocity(rv);
+        setPosition(getX() + rv.x, getY() + rv.y, getZ() + rv.z);
 
-        Vec3d returnVel = toOwner.normalize().multiply(RETURN_SPEED);
-        setVelocity(returnVel);
-        setPosition(getX() + returnVel.x, getY() + returnVel.y, getZ() + returnVel.z);
-
-        Box searchBox = getBoundingBox().expand(0.8);
-        List<Entity> nearby = getWorld().getOtherEntities(this, searchBox,
-                e -> e instanceof LivingEntity && e != owner);
-        for (Entity e : nearby) {
+        for (Entity e : getWorld().getOtherEntities(this, getBoundingBox().expand(0.8),
+                en -> en instanceof LivingEntity && en != owner)) {
             onEntityHit((LivingEntity) e);
         }
-
         velocityDirty = true;
     }
 
     private void onEntityHit(LivingEntity target) {
         if (!(getWorld() instanceof ServerWorld sw)) return;
 
-        DamageSource source = getDamageSources().thrown(this, getOwner());
-        target.damage(source, DAMAGE);
+        DamageSource src = getDamageSources().thrown(this, getOwner());
+        target.damage(src, DAMAGE);
         target.setOnFireFor(FIRE_TICKS / 20);
 
-        Box aoeBox = target.getBoundingBox().expand(AOE_RADIUS);
-        List<Entity> splashTargets = getWorld().getOtherEntities(this, aoeBox,
-                e -> e instanceof LivingEntity && e != target && e != getOwner());
-        for (Entity splash : splashTargets) {
-            if (splash.squaredDistanceTo(target) <= AOE_RADIUS * AOE_RADIUS) {
-                ((LivingEntity) splash).damage(source, AOE_DAMAGE);
-                ((LivingEntity) splash).setOnFireFor(FIRE_TICKS / 20);
+        for (Entity e : getWorld().getOtherEntities(this,
+                target.getBoundingBox().expand(AOE_RADIUS),
+                en -> en instanceof LivingEntity && en != target && en != getOwner())) {
+            if (e.squaredDistanceTo(target) <= AOE_RADIUS * AOE_RADIUS) {
+                ((LivingEntity) e).damage(src, AOE_DAMAGE);
+                ((LivingEntity) e).setOnFireFor(FIRE_TICKS / 20);
             }
         }
 
         sw.spawnParticles(ParticleTypes.FLAME,
                 target.getX(), target.getY() + 1, target.getZ(),
                 20, 0.5, 0.5, 0.5, 0.1);
-
         returning = true;
     }
 
     private void onReturnToOwner(Entity owner) {
-        if (owner instanceof PlayerEntity player && !player.isCreative()) {
-            player.getInventory().offerOrDrop(new ItemStack(SudarshanMod.SUDARSHAN_CHAKRA));
-        }
-        this.discard();
+        if (owner instanceof PlayerEntity p && !p.isCreative())
+            p.getInventory().offerOrDrop(new ItemStack(SudarshanMod.SUDARSHAN_CHAKRA));
+        discard();
     }
 
     private void spawnTrailParticlesClient() {
-        World world = getWorld();
-        world.addParticle(ParticleTypes.FLAME,
-                getX() + (world.random.nextDouble() - 0.5) * 0.2,
-                getY() + (world.random.nextDouble() - 0.5) * 0.2,
-                getZ() + (world.random.nextDouble() - 0.5) * 0.2,
-                0, 0, 0);
-        world.addParticle(ParticleTypes.END_ROD, getX(), getY(), getZ(), 0, 0, 0);
+        World w = getWorld();
+        w.addParticle(ParticleTypes.FLAME,
+                getX() + (w.random.nextDouble() - 0.5) * 0.2,
+                getY() + (w.random.nextDouble() - 0.5) * 0.2,
+                getZ() + (w.random.nextDouble() - 0.5) * 0.2, 0, 0, 0);
+        w.addParticle(ParticleTypes.END_ROD, getX(), getY(), getZ(), 0, 0, 0);
     }
 
     private void spawnTrailParticlesServer() {
@@ -178,14 +151,12 @@ public class ChakraEntity extends ProjectileEntity {
         sw.spawnParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 1, 0, 0, 0, 0);
     }
 
-    @Override
-    protected void onEntityHit(EntityHitResult entityHitResult) {
-        // handled manually above
-    }
+    // ProjectileEntity handles createSpawnPacket in 1.21.1 — do NOT override it
+    @Override protected void onEntityHit(EntityHitResult r) { /* handled manually */ }
 
     @Override
-    protected boolean canHit(Entity entity) {
-        return entity instanceof LivingEntity && entity != getOwner() && super.canHit(entity);
+    protected boolean canHit(Entity e) {
+        return e instanceof LivingEntity && e != getOwner() && super.canHit(e);
     }
 
     @Override
@@ -198,11 +169,5 @@ public class ChakraEntity extends ProjectileEntity {
     public void writeCustomDataToNbt(NbtCompound nbt) {
         nbt.putBoolean("Returning",   returning);
         nbt.putInt("FlightTicks",     flightTicks);
-    }
-
-    // Fix 2 & 3: correct 1.21.1 spawn packet signature
-    @Override
-    public Packet<ClientPlayPacketListener> createSpawnPacket() {
-        return new EntitySpawnS2CPacket(this, 0);
     }
 }
