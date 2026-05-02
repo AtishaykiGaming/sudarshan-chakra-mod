@@ -20,7 +20,6 @@ public class SudarshanMod implements ModInitializer {
     public static final String MOD_ID = "sudarshanmod";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    // Declared here, assigned inside onInitialize() so registry is ready
     public static Item SUDARSHAN_CHAKRA;
     public static EntityType<ChakraEntity> CHAKRA_ENTITY;
     public static SoundEvent CHAKRA_THROW;
@@ -29,12 +28,10 @@ public class SudarshanMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // ── Sounds (register first — entity + item may reference them) ────
         CHAKRA_THROW  = registerSound("chakra_throw");
         CHAKRA_HIT    = registerSound("chakra_hit");
         CHAKRA_RETURN = registerSound("chakra_return");
 
-        // ── Entity type ───────────────────────────────────────────────────
         CHAKRA_ENTITY = Registry.register(
                 Registries.ENTITY_TYPE,
                 Identifier.of(MOD_ID, "chakra_entity"),
@@ -43,7 +40,6 @@ public class SudarshanMod implements ModInitializer {
                         .build()
         );
 
-        // ── Item ──────────────────────────────────────────────────────────
         SUDARSHAN_CHAKRA = Registry.register(
                 Registries.ITEM,
                 Identifier.of(MOD_ID, "sudarshan_chakra"),
