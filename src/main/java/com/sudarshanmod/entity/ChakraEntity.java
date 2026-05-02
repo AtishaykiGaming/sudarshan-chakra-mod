@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
@@ -47,6 +48,12 @@ public class ChakraEntity extends ProjectileEntity {
         this(SudarshanMod.CHAKRA_ENTITY, world);
         this.setOwner(thrower);
         this.setPosition(thrower.getX(), thrower.getEyeY() - 0.1, thrower.getZ());
+    }
+
+    // Fix 1: required by 1.21.1 — just call super, no custom tracked data needed
+    @Override
+    protected void initDataTracker(DataTracker.Builder builder) {
+        super.initDataTracker(builder);
     }
 
     @Override
@@ -193,8 +200,9 @@ public class ChakraEntity extends ProjectileEntity {
         nbt.putInt("FlightTicks",     flightTicks);
     }
 
+    // Fix 2 & 3: correct 1.21.1 spawn packet signature
     @Override
     public Packet<ClientPlayPacketListener> createSpawnPacket() {
-        return new EntitySpawnS2CPacket(this);
+        return new EntitySpawnS2CPacket(this, 0);
     }
 }
